@@ -1,0 +1,16 @@
+version: '2.1'
+services:
+  {{ logstash_service_name }}:
+    image: {{ logstash_image }}
+    container_name: {{ logstash_container_name }}
+    command: {{ logstash_command }}
+    restart: always
+    network_mode: host
+    volumes:
+      - /logstash/config:/etc/logstash
+{% if logstash_envs.items()|length %}
+    environment:
+{% for key, value in logstash_envs.items() %}
+      - {{ key }}={{ value }}
+{% endfor %}
+{% endif %}

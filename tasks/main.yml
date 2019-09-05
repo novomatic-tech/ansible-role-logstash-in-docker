@@ -1,0 +1,70 @@
+---
+- name: Logstash | Ensure group "{{ logstash_group }}" exists
+  group:
+    name: "{{ logstash_group }}"
+    state: present
+
+- name: Logstash | Ensure user "{{ logstash_user }}" exists
+  user:
+    name: "{{ logstash_user }}"
+    shell: /bin/nologin
+    state: present
+
+- name: Logstash | Create folders
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ logstash_user }}"
+    group: "{{ logstash_group }}"
+    recurse: yes
+  loop:
+    - /logstash/config
+
+- name: Logstash | Copy logstash conf file
+  template:
+    src: pipeline.yml.j2
+    dest: /logstash/config/logstash.conf
+    owner: "{{ logstash_user }}"
+    group: "{{ logstash_group }}"
+
+- name: Logstash | Create compose directory
+  file:
+    path: "{{ logstash_compose_files_path }}/logstash"
+    state: directory
+    owner: "{{ logstash_user }}"
+    group: "{{ logstash_group }}"
+    recurse: yes
+
+- name: Logstash | Copy logstash docker compose file
+  template:
+    src: logstash-compose.yml.j2
+    dest: "{{ logstash_compose_files_path }}/logstash/docker-compose.yml"
+    owner: "{{ logstash_user }}"
+    group: "{{ logstash_group }}"
+
+- name: Logstash | Run logstash container
+  docker_compose:
+    project_name: logstash
+    project_src: "{{ logstash_compose_files_path }}/logstash"
+
+- name: Logstash | Enable component monitoring
+  block:
+    - name: Logstash | Create exporter compose directory
+      file:
+        path: "{{ logstash_compose_files_path }}/logstash-exporter"
+        state: directory
+        recurse: yes
+
+    - name: Logstash | Copy logstash-exporter docker compose file
+      template:
+        src: logstash-exporter-compose.yml.j2
+        dest: "{{ logstash_compose_files_path }}/logstash-exporter/docker-compose.yml"
+        owner: "{{ logstash_user }}"
+        group: "{{ logstash_group }}"
+        mode: '0644'
+
+    - name: Logstash | Run logstash-exporter container
+      docker_compose:
+        project_name: logstash-exporter
+        project_src: "{{ logstash_compose_files_path }}/logstash-exporter"
+  when: logstash_monitoring_enabled

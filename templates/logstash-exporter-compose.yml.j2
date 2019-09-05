@@ -1,0 +1,8 @@
+version: '2.1'
+services:
+  {{ logstash_service_name }}-exporter:
+    image: {{ logtash_exporter_image }}
+    container_name: {{ logstash_container_name }}-exporter
+    restart: always
+    network_mode: host
+    command: {{ logstash_exporter_command }}
