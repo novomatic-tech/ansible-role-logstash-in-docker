@@ -11,7 +11,7 @@ logstash_compose_files_path: "/etc/compose-files"
 
 logstash_monitoring_enabled: true
 logtash_exporter_image: "sequra/logstash_exporter:v0.1.3"
-logstash_exporter_command: "--web.listen-address=:9198 --logstash.endpoint=http://{{ logstash_service_name }}:9600"
+logstash_exporter_command: "--web.listen-address=:9198 --logstash.endpoint=http://localhost:9600"
 logstash_pipeline: |
   input {
   }
